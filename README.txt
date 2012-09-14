@@ -73,7 +73,7 @@ INSTALLATION
 ------------
 Activate the module, then administer a desired View. Under any field you want
 to affect, Edit the field and select the appropriate Aggregate or Filter option
-under the "Views Distinct" section of the configuration form.
+under the "Views Distinct Settings" section of the configuration form.
 
 If you don't have have a good field to disambiguate "duplicate" rows, you can
 add a Global: Text and rewrite it with some combination of existing fields,
