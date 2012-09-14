@@ -54,7 +54,7 @@ function views_distinct_form_views_ui_config_item_form_alter(&$form, &$form_stat
   $form['options']['views_distinct_aggregate_separator'] = array(
     '#type' => 'textfield',
     '#title' => t('Aggregation Separator'),
-    '#description' => t('This value will be used between each value when aggregated results are combined.'),
+    '#description' => t('This value will be used between each value when aggregated results are combined. HTML is allowed, so be careful.'),
     '#default_value' => $views_distinct_settings['aggregate_separator'],
     '#fieldset' => 'views_distinct',
     '#states' => array(
@@ -312,6 +312,9 @@ function _views_distinct_field_settings_get($view_name, $display_name, $field_na
     }
     foreach ($results as $result) {
       $settings = unserialize($result->settings) + _views_distinct_field_settings_defaults();
+      // HTML is allowed, but filter for terrible exploits in the aggregation
+      // joiner:
+      $settings['aggregate_separator'] = filter_xss($settings['aggregate_separator']);
       $static_cache[$view_name] = array_merge_recursive(
         $static_cache[$view_name],
         array(
