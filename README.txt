@@ -4,6 +4,7 @@ CONTENTS OF THIS FILE
   * Introduction
   * Examples
   * Installation
+  * Known Issues/Shortcomings
   * Maintainers
 
 
@@ -70,12 +71,27 @@ Or, Aggregating on both Instructor and Term fields:
 
 INSTALLATION
 ------------
-Activate the module and select the appropriate Aggregate or Distinct option on
-your field(s).  If you don't have have a good field to disambiguate "duplicate"
-rows, you can add a Global: Text and rewrite it with some combination of
-existing fields, like the rewrite values for a course title display:
-"[class_subject] [class_number] [class_title]".  Just make sure to turn on
-post-rendering actions.
+Activate the module, then administer a desired View. Under any field you want
+to affect, Edit the field and select the appropriate Aggregate or Filter option
+under the "Views Distinct" section of the configuration form.
+
+If you don't have have a good field to disambiguate "duplicate" rows, you can
+add a Global: Text and rewrite it with some combination of existing fields,
+like the rewrite values for a course title display:
+"[class_subject] [class_number] [class_title]". Be sure to enable the
+post-rendering option, or rewrites will not work!
+
+
+KNOWN ISSUES/SHORTCOMINGS
+-------------------------
+These are on the To-Do list, but don't seem critical enough to prevent this
+module from helping a lot of people. Still, they may cause odd behavior, so
+it's best if folks know about them:
+
+    1) Output (HTML) caching is not supported when the field is
+      Filtered/Aggregated on its rendered value. If output caching is enabled
+      on the View, don't enable post-render filtering/aggregation. This does
+      not affect Views query caching, which works.
 
 
 MAINTAINERS
