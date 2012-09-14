@@ -92,7 +92,8 @@ it's best if folks know about them:
       Filtered/Aggregated on its rendered value. If output caching is enabled
       on the View, don't enable post-render filtering/aggregation. This does
       not affect Views query caching, which works.
-
+    2) Filtering out results does not update the pager, even in
+      hook_views_post_execute() when unset()ing entries $view->results.
 
 MAINTAINERS
 -----------
