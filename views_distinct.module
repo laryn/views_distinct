@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Allow filtering/aggregating "distinct" Views results based on arbitrary fields
+ * Allow filtering/aggregating Views results based on arbitrary distinct fields.
  */
 
 /**
@@ -21,7 +21,9 @@ function views_distinct_help($path, $arg) {
  */
 function views_distinct_form_views_ui_config_item_form_alter(&$form, &$form_state) {
   // Only apply our logic to field configurations:
-  if ($form_state['type'] != 'field') return;
+  if ($form_state['type'] != 'field') {
+    return;
+  }
 
   $view_name = $form_state['view']->name;
   $display_name = $form_state['display_id'];
@@ -94,7 +96,6 @@ function views_distinct_form_views_ui_config_item_form_alter(&$form, &$form_stat
  * @see views_object::unpack_options()
  * @see views_handler_field::option_definition()
  */
-
 function views_distinct_form_views_ui_config_item_form_submit($form, &$form_state) {
   $view_name = $form_state['view']->name;
   $display_name = $form_state['display_id'];
@@ -111,7 +112,6 @@ function views_distinct_form_views_ui_config_item_form_submit($form, &$form_stat
     // setting we've stored for the actual $display_name, since that no longer
     // applies (the user has chosen to NOT override the default settings,
     // which would be the only reason to store $display_name-specific settings).
-
     // Remove any existing $display_name setting:
     _views_distinct_field_settings_set($view_name, $display_name, $field_name, NULL);
 
@@ -127,7 +127,9 @@ function views_distinct_form_views_ui_config_item_form_submit($form, &$form_stat
   ) + _views_distinct_field_settings_defaults();
 
   // If no action was desired, delete the settings entirely:
-  if (empty($settings['action'])) $settings = NULL;
+  if (empty($settings['action'])) {
+    $settings = NULL;
+  }
   _views_distinct_field_settings_set($view_name, $display_name, $field_name, $settings);
 }
 
@@ -199,8 +201,10 @@ function views_distinct_views_post_execute(&$view) {
  * We only use this hook when we need to use rendered output to remove dupes.
  */
 function views_distinct_views_post_render(&$view, &$output, &$cache) {
-  static $prevent_recursion = false;
-  if ($prevent_recursion) return;
+  static $prevent_recursion = FALSE;
+  if ($prevent_recursion) {
+    return;
+  }
 
   // For now, if HTML output caching is enabled, skip processing (we don't
   // support it yet due to missing $view/$cache properties we need access to.)
@@ -259,18 +263,12 @@ function views_distinct_views_post_render(&$view, &$output, &$cache) {
   }
 
   // Since we've changed the post-rendered output, we need to run render again.
-  $prevent_recursion = true;
+  $prevent_recursion = TRUE;
   $output = $view->render();
-  $prevent_recursion = false;
+  $prevent_recursion = FALSE;
 
   $view->output = $output;
   $view->display_handler->output = $output;
-  // if ($cache && $cache->cache_get('output')) {
-    // $cache->output = $output;
-    // $cache->view = $view;
-    // $cache->cache_set('output');
-    // $cache->post_render($output);
-  // }
 }
 
 /**
@@ -329,7 +327,7 @@ function _views_distinct_field_settings_get($view_name, $display_name, $field_na
     return $static_cache[$view_name][$display_name][$field_name];
   }
   // Check for a "default" result:
-  else if (!empty($static_cache[$view_name]['default'][$field_name])) {
+  elseif (!empty($static_cache[$view_name]['default'][$field_name])) {
     return $static_cache[$view_name]['default'][$field_name];
   }
 
@@ -352,7 +350,9 @@ function _views_distinct_field_settings_get($view_name, $display_name, $field_na
  */
 function _views_distinct_field_settings_set($view_name, $display_name, $field_name, $settings = NULL) {
   $static_cache = &drupal_static('views_distinct', array());
-  if (empty($display_name)) $display_name = 'default';
+  if (empty($display_name)) {
+    $display_name = 'default';
+  }
   // Whether updating/inserting or removing, we start with removing the current
   // setting, if it exists:
   db_delete('views_distinct')
@@ -371,7 +371,7 @@ function _views_distinct_field_settings_set($view_name, $display_name, $field_na
       'view_name' => $view_name,
       'display_id' => $display_name,
       'field_id' => $field_name,
-      'settings' => $settings
+      'settings' => $settings,
     );
     drupal_write_record('views_distinct', $record);
   }
@@ -448,11 +448,11 @@ function _views_distinct_get_view_actions(&$view) {
         $aggregated_row_fields = &$actions['pre_render']['aggregated_fields'];
       }
       if ($settings['action'] == 'filter_repeats') {
-        // Add this field to the set of filtered duplicate fields
+        // Add this field to the set of filtered duplicate fields:
         $filter_row_fields[$field_name] = array();
       }
-      else if ($settings['action'] == 'aggregate_repeats') {
-        // Add this field to the set of aggregated fields
+      elseif ($settings['action'] == 'aggregate_repeats') {
+        // Add this field to the set of aggregated fields:
         $aggregated_row_fields[$field_name] = array();
       }
     }

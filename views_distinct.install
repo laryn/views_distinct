@@ -4,8 +4,11 @@
  * Install, update and uninstall functions for the Views Distinct module.
  */
 
+/**
+ * Implements hook_install().
+ */
 function views_distinct_schema() {
-  $schema['views_distinct'] = array (
+  $schema['views_distinct'] = array(
     'description' => 'Store settings per View->Display->Field',
     'fields' => array(
       'view_name' => array(
