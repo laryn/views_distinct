@@ -37,7 +37,6 @@ function views_distinct_form_views_ui_config_item_form_alter(&$form, &$form_stat
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
-  $handler = $form_state['handler'];
   $methods = array(
     '' => t('Do Nothing'),
     'filter_repeats' => t('Filter Repeats'),
@@ -68,8 +67,8 @@ function views_distinct_form_views_ui_config_item_form_alter(&$form, &$form_stat
   );
   $form['options']['views_distinct_post_render'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Use the rendered ouput of this field'),
-    '#description' => t('Filter/aggregate based on the rendered ouput of this field, including any Rewrite Results changes. This has performance implications (the queries are not impacted but the View must be built twice.'),
+    '#title' => t('Use the rendered output of this field'),
+    '#description' => t('Filter/aggregate based on the rendered output of this field, including any Rewrite Results changes. This has performance implications (the queries are not impacted but the View must be built twice.'),
     '#default_value' => $views_distinct_settings['post_render'],
     '#fieldset' => 'views_distinct',
     '#states' => array(
@@ -101,7 +100,6 @@ function views_distinct_form_views_ui_config_item_form_submit($form, &$form_stat
   $display_name = $form_state['display_id'];
   $field_name = $form_state['id'];
   $override_display_name = reset($form_state['values']['override']);
-  $views_distinct_action = $form_state['values']['options']['views_distinct_action'];
 
   // Check if we're configuring this field for *this display only* or for all
   // displays (really, the "default" display):
@@ -161,7 +159,7 @@ function views_distinct_views_post_execute(&$view) {
           // Add this value to the field's list for aggregation later
           // (we use array keys here to automatically remove dupes; the TRUE
           // value is a dummy value.)
-          $aggregated_values[$result->{$sql_field}] = TRUE;
+          $aggregated_values['values'][$result->{$sql_field}] = TRUE;
         }
       }
       foreach ($filter_sql_fields_list as $sql_field) {
@@ -182,13 +180,12 @@ function views_distinct_views_post_execute(&$view) {
   // aggregated field values, if any:
   if (!empty($aggregated_sql_fields)) {
     foreach ($aggregated_sql_fields as $sql_field => &$aggregated_values) {
-      $settings = _views_distinct_field_settings_get($view->name, $view->current_display, $field_name);
-      $aggregated_values = implode($settings['aggregate_separator'], array_keys($aggregated_values));
+      $aggregated_values['values'] = implode($aggregated_values['separator'], array_keys($aggregated_values['values']));
     }
     foreach ($view->result as $result_index => &$result) {
       foreach ($aggregated_sql_fields as $sql_field => $aggregated_values) {
         if (isset($result->{$sql_field})) {
-          $result->{$sql_field} = $aggregated_values;
+          $result->{$sql_field} = $aggregated_values['values'];
         }
       }
     }
@@ -228,7 +225,7 @@ function views_distinct_views_post_render(&$view, &$output, &$cache) {
           // Add this value to the field's list for aggregation later
           // (we use array keys here to automatically remove dupes; the TRUE
           // value is a dummy value.)
-          $aggregated_values[$row[$field_name]] = TRUE;
+          $aggregated_values['values'][$row[$field_name]] = TRUE;
         }
       }
       foreach ($filter_row_fields_list as $field_name) {
@@ -250,13 +247,12 @@ function views_distinct_views_post_render(&$view, &$output, &$cache) {
   // aggregated field values, if any:
   if (!empty($aggregated_row_fields)) {
     foreach ($aggregated_row_fields as $field_name => &$aggregated_values) {
-      $settings = _views_distinct_field_settings_get($view->name, $view->current_display, $field_name);
-      $aggregated_values = implode($settings['aggregate_separator'], array_keys($aggregated_values));
+      $aggregated_values['values'] = implode($aggregated_values['separator'], array_keys($aggregated_values['values']));
     }
     foreach ($view->style_plugin->rendered_fields as &$row) {
       foreach ($aggregated_row_fields as $field_name => $aggregated_values) {
         if (isset($row[$field_name])) {
-          $row[$field_name] = $aggregated_values;
+          $row[$field_name] = $aggregated_values['values'];
         }
       }
     }
@@ -456,7 +452,10 @@ function _views_distinct_get_view_actions(&$view) {
       }
       elseif ($settings['action'] == 'aggregate_repeats') {
         // Add this field to the set of aggregated fields:
-        $aggregated_row_fields[$field_name] = array();
+        $aggregated_row_fields[$field_name] = array(
+          'values' => array(),
+          'separator' => $settings['aggregate_separator'],
+        );
       }
     }
   }
