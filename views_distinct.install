@@ -12,10 +12,11 @@ function views_distinct_schema() {
     'description' => 'Store settings per View->Display->Field',
     'fields' => array(
       'view_name' => array(
-        'description' => 'View id, as found in views_view.vid.',
+        'type' => 'varchar',
         'length' => '64',
         'default' => '',
         'not null' => TRUE,
+        'description' => 'View name, as found in views_view.name.',
       ),
       'display_id' => array(
         'type' => 'varchar',
@@ -46,7 +47,7 @@ function views_distinct_schema() {
     'foreign keys' => array(
       'view_name' => array(
         'table' => 'views_view',
-        'columns' => array('view_name' => 'vid'),
+        'columns' => array('view_name' => 'name'),
       ),
       'display_id' => array(
         'table' => 'views_display',
