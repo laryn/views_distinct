@@ -190,6 +190,27 @@ function views_distinct_views_post_execute(&$view) {
       }
     }
   }
+
+  // Attempt to update the results cache.
+  $cache = $view->display_handler->get_plugin('cache');
+  if ($cache) {
+    $cache->cache_set('results');
+  }
+
+  // Update the pager, if we're using one.  Note: this only updates the page
+  // count that the pager displays, and even that it does not do fully:
+  // at most we will only be reducing $view->total_rows by (N - 1) where N is
+  // the per-page count of items, which may not affect the "total pages"
+  // sufficiently.  For example, if each pager page is showing 10 items, and
+  // we aggregate rows 1-9 into row 0, we've removed 9 rows.  If the total
+  // results for the query was 100 (even if they all end up being duplicates as
+  // well! We can't know at this point), which is 10 pages, our "fixed" result
+  // count would be "91", which would still show 10 pages.  In reality, once all
+  // dupes are filtered/aggregated, we may only have 2 pages.
+  if ($view->query->pager->use_pager()) {
+    $view->query->pager->total_items = $view->total_rows;
+    $view->query->pager->update_page_info();
+  }
 }
 
 /**
@@ -256,6 +277,21 @@ function views_distinct_views_post_render(&$view, &$output, &$cache) {
         }
       }
     }
+  }
+
+  // Update the pager, if we're using one.  Note: this only updates the page
+  // count that the pager displays, and even that it does not do fully:
+  // at most we will only be reducing $view->total_rows by (N - 1) where N is
+  // the per-page count of items, which may not affect the "total pages"
+  // sufficiently.  For example, if each pager page is showing 10 items, and
+  // we aggregate rows 1-9 into row 0, we've removed 9 rows.  If the total
+  // results for the query was 100 (even if they all end up being duplicates as
+  // well! We can't know at this point), which is 10 pages, our "fixed" result
+  // count would be "91", which would still show 10 pages.  In reality, once all
+  // dupes are filtered/aggregated, we may only have 2 pages.
+  if ($view->query->pager->use_pager()) {
+    $view->query->pager->total_items = $view->total_rows;
+    $view->query->pager->update_page_info();
   }
 
   // Since we've changed the post-rendered output, we need to run render again.
