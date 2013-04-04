@@ -237,30 +237,32 @@ function views_distinct_views_post_render(&$view, &$output, &$cache) {
 
   // Check if we have any action we need to take (there are rows to filter or
   // aggregate):
-  if (!empty($aggregated_row_fields) || !empty($filter_row_fields)) {
-    // Iterate every rendered row and either filter or aggregate it.
-    $filter_row_fields_list = array_keys($filter_row_fields);
-    foreach ($view->style_plugin->rendered_fields as $row_index => $row) {
-      foreach ($aggregated_row_fields as $field_name => &$aggregated_values) {
-        if (isset($row[$field_name])) {
-          // Add this value to the field's list for aggregation later
-          // (we use array keys here to automatically remove dupes; the TRUE
-          // value is a dummy value.)
-          $aggregated_values['values'][$row[$field_name]] = TRUE;
-        }
+  if (empty($aggregated_row_fields) && empty($filter_row_fields)) {
+    return;
+  }
+
+  // Iterate every rendered row and either filter or aggregate it.
+  $filter_row_fields_list = array_keys($filter_row_fields);
+  foreach ($view->style_plugin->rendered_fields as $row_index => $row) {
+    foreach ($aggregated_row_fields as $field_name => &$aggregated_values) {
+      if (isset($row[$field_name])) {
+        // Add this value to the field's list for aggregation later
+        // (we use array keys here to automatically remove dupes; the TRUE
+        // value is a dummy value.)
+        $aggregated_values['values'][$row[$field_name]] = TRUE;
       }
-      foreach ($filter_row_fields_list as $field_name) {
-        $value = $row[$field_name];
-        if (!empty($filter_row_fields[$field_name][$value])) {
-          // This is a repeated row!
-          unset($view->style_plugin->row_tokens[$row_index]);
-          unset($view->style_plugin->render_tokens[$row_index]);
-          unset($view->style_plugin->rendered_fields[$row_index]);
-          unset($view->result[$row_index]);
-          --$view->total_rows;
-        }
-        $filter_row_fields[$field_name][$value] = TRUE;
+    }
+    foreach ($filter_row_fields_list as $field_name) {
+      $value = $row[$field_name];
+      if (!empty($filter_row_fields[$field_name][$value])) {
+        // This is a repeated row!
+        unset($view->style_plugin->row_tokens[$row_index]);
+        unset($view->style_plugin->render_tokens[$row_index]);
+        unset($view->style_plugin->rendered_fields[$row_index]);
+        unset($view->result[$row_index]);
+        --$view->total_rows;
       }
+      $filter_row_fields[$field_name][$value] = TRUE;
     }
   }
 
