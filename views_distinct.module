@@ -150,28 +150,32 @@ function views_distinct_views_post_execute(&$view) {
 
   // Check if we have any action we need to take (there are rows to filter or
   // aggregate):
-  if (!empty($aggregated_sql_fields) || !empty($filter_sql_fields)) {
-    // Iterate each result, aggregating query field results and removing dupes:
-    $filter_sql_fields_list = array_keys($filter_sql_fields);
-    foreach ($view->result as $result_index => &$result) {
-      foreach ($aggregated_sql_fields as $sql_field => &$aggregated_values) {
-        if (isset($result->{$sql_field})) {
-          // Add this value to the field's list for aggregation later
-          // (we use array keys here to automatically remove dupes; the TRUE
-          // value is a dummy value.)
-          $aggregated_values['values'][$result->{$sql_field}] = TRUE;
-        }
+    // Check if we have any action we need to take (there are rows to filter or
+  // aggregate):
+  if (empty($aggregated_sql_fields) && empty($filter_sql_fields)) {
+    return;
+  }
+
+  // Iterate each result, aggregating query field results and removing dupes:
+  $filter_sql_fields_list = array_keys($filter_sql_fields);
+  foreach ($view->result as $result_index => &$result) {
+    foreach ($aggregated_sql_fields as $sql_field => &$aggregated_values) {
+      if (isset($result->{$sql_field})) {
+        // Add this value to the field's list for aggregation later
+        // (we use array keys here to automatically remove dupes; the TRUE
+        // value is a dummy value.)
+        $aggregated_values['values'][$result->{$sql_field}] = TRUE;
       }
-      foreach ($filter_sql_fields_list as $sql_field) {
-        if (isset($result->{$sql_field})) {
-          $value = $result->{$sql_field};
-          if (!empty($filter_sql_fields[$sql_field][$value])) {
-            // This is a repeated row!
-            unset($view->result[$result_index]);
-            --$view->total_rows;
-          }
-          $filter_sql_fields[$sql_field][$value] = TRUE;
+    }
+    foreach ($filter_sql_fields_list as $sql_field) {
+      if (isset($result->{$sql_field})) {
+        $value = $result->{$sql_field};
+        if (!empty($filter_sql_fields[$sql_field][$value])) {
+          // This is a repeated row!
+          unset($view->result[$result_index]);
+          --$view->total_rows;
         }
+        $filter_sql_fields[$sql_field][$value] = TRUE;
       }
     }
   }
@@ -214,20 +218,21 @@ function views_distinct_views_post_execute(&$view) {
 }
 
 /**
- * Implements hook_views_post_render().
+ * Implements hook_process_views_view().
  *
  * We only use this hook when we need to use rendered output to remove dupes.
  */
-function views_distinct_views_post_render(&$view, &$output, &$cache) {
-  static $prevent_recursion = FALSE;
-  if ($prevent_recursion) {
-    return;
-  }
-
-  // For now, if HTML output caching is enabled, skip processing (we don't
-  // support it yet due to missing $view/$cache properties we need access to.)
-  if ($cache && $cache->cache_get('output')) {
-    return;
+function views_distinct_process_views_view(&$vars) {
+  // This function used to exist as an implementation of
+  // hook_views_post_render(&$view, &$output, &$cache), so pull out pieces of
+  // $vars in order to reproduce the previous variables.
+  $view = &$vars['view'];
+  $output = &$view->display_handler->output;
+  // This $cache logic is based on view::render(), which uses this to determine
+  // $cache before passing it to hook_views_post_render() implementations.
+  $cache = FALSE;
+  if (!empty($view->live_preview)) {
+    $cache = &$view->display_handler->get_plugin('cache');
   }
 
   // Get the query fields that will need filtering/aggregation:
@@ -243,6 +248,14 @@ function views_distinct_views_post_render(&$view, &$output, &$cache) {
 
   // Iterate every rendered row and either filter or aggregate it.
   $filter_row_fields_list = array_keys($filter_row_fields);
+  // Some style plugins (notably views_plugin_style_summary, which Contextual
+  // Filters uses to "display summary") do not support fields
+  // (style_plugin->uses_fields() returns FALSE due to uses_row_plugin()
+  // returning FALSE, seemingly regardless of the row plugin). In these cases,
+  // $rendered_fields is always NULL and we cannot force these to render. Bail.
+  if (empty($view->style_plugin->rendered_fields)) {
+    return;
+  }
   foreach ($view->style_plugin->rendered_fields as $row_index => $row) {
     foreach ($aggregated_row_fields as $field_name => &$aggregated_values) {
       if (isset($row[$field_name])) {
@@ -294,15 +307,18 @@ function views_distinct_views_post_render(&$view, &$output, &$cache) {
   if ($view->query->pager->use_pager()) {
     $view->query->pager->total_items = $view->total_rows;
     $view->query->pager->update_page_info();
+    // This logic borrowed from template_preprocess_views_view().
+    if (!empty($vars['pager'])) {
+      $exposed_input = isset($view->exposed_raw_input) ? $view->exposed_raw_input : NULL;
+      $vars['pager'] = $view->query->render_pager($exposed_input);
+    }
   }
 
-  // Since we've changed the post-rendered output, we need to run render again.
-  $prevent_recursion = TRUE;
-  $output = $view->render();
-  $prevent_recursion = FALSE;
-
-  $view->output = $output;
-  $view->display_handler->output = $output;
+  // Since we've changed the post-rendered field output, we need to run render()
+  // on $rows again. This will call views_plugin_style::render_grouping(),
+  // which in turn calls views_plugin_style::get_field(), which refers to our
+  // modified views_plugin_style::rendered_fields[] array values.
+  $vars['rows'] = $view->style_plugin->render();
 }
 
 /**

@@ -25,10 +25,8 @@ removed as duplicates (filtered), or aggregated in-line.
 The "value" of the field as used for filtering or aggregation can be taken
 pre-render (fastest and totally cacheable), or post-render (after any rewrite
 rules or other transformations have occurred).  Post-render actions are a bit
-slower (the View must be re-rendered, though the query is not re-run), and
-currently Output caching is unsupported for post-rendered changes.  You can
-still use query caching, however.  Post-render checks also work with Global
-fields, like Global: Text w/rewrite rules.
+slower (the View must be re-rendered, though the query is not re-run), but also
+work with Global fields, like Global: Text w/rewrite rules.
 
 EXAMPLES
 --------
@@ -95,12 +93,8 @@ it's best if folks know about them:
       Results won't be scrambled, but fewer-than-expected results may show up
       on pagers; please test the outcome and choose if the pager is worth the
       oddness.
-    2) Output (HTML) caching is not supported when the field is
-      Filtered/Aggregated on its rendered value. If output caching is enabled
-      on the View, don't enable post-render filtering/aggregation. This does
-      not affect Views query caching, which works.
-    3) Filtering out results does not update the pager, even in
-      hook_views_post_execute() when unset()ing entries $view->results.
+    2) Filtering out results does not update pager displays correctly, even in
+      hook_views_post_execute() when unset()ing entries in $view->results.
 
 MAINTAINERS
 -----------
