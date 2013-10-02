@@ -1,6 +1,5 @@
 name = Views Distinct
-description = Allow filtering/aggregating "distinct" Views result rows based on arbitrary fields
+description = Allow filtering/aggregating "distinct" Views result rows based on arbitrary fields.
 core = 7.x
 package = Views
 dependencies[] = views
-dependencies[] = views_ui
