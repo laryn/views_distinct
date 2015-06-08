@@ -153,8 +153,6 @@ function views_distinct_views_post_execute(&$view) {
 
   // Check if we have any action we need to take (there are rows to filter or
   // aggregate):
-    // Check if we have any action we need to take (there are rows to filter or
-  // aggregate):
   if (empty($aggregated_sql_fields) && empty($filter_sql_fields)) {
     return;
   }
