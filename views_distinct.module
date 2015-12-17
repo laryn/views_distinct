@@ -157,6 +157,8 @@ function views_distinct_views_post_execute(&$view) {
     return;
   }
 
+  // @todo Only process the results if we haven't already (if they're cached).
+
   // Iterate each result, aggregating query field results and removing dupes:
   $filter_sql_fields_list = array_keys($filter_sql_fields);
   foreach ($view->result as $result_index => &$result) {
@@ -197,10 +199,11 @@ function views_distinct_views_post_execute(&$view) {
   }
 
   // Attempt to update the results cache.
-  $cache = $view->display_handler->get_plugin('cache');
-  if ($cache) {
-    $cache->cache_set('results');
-  }
+  // @todo Only update cache once on the very first processing.
+  //$cache = $view->display_handler->get_plugin('cache');
+  //if ($cache) {
+  //  $cache->cache_set('results');
+  //}
 
   // Update the pager, if we're using one.  Note: this only updates the page
   // count that the pager displays, and even that it does not do fully:
