@@ -1,5 +1,6 @@
 name = Views Distinct
 description = Allow filtering/aggregating "distinct" Views result rows based on arbitrary fields.
-core = 7.x
+backdrop = 1.x
+type = module
 package = Views
 dependencies[] = views

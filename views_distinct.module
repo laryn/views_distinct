@@ -9,8 +9,8 @@
  */
 function views_distinct_help($path, $arg) {
   if ($path == 'admin/help#views_distinct') {
-    $output = file_get_contents(drupal_get_path('module', 'views_distinct') . '/README.txt');
-    return module_exists('markdown') ? filter_xss_admin(module_invoke('markdown', 'filter', 'process', 0, -1, $output)) : '<pre>' . check_plain($output) . '</pre>';
+    $output = file_get_contents(backdrop_get_path('module', 'views_distinct') . '/README.txt');
+    return module_exists('markdown')?filter_xss_admin(module_invoke('markdown', 'filter', 'process', 0, -1, $output)) : '<pre>' . check_plain($output) . '</pre>';
   }
 }
 
@@ -202,7 +202,7 @@ function views_distinct_views_post_execute(&$view) {
   // @todo Only update cache once on the very first processing.
   //$cache = $view->display_handler->get_plugin('cache');
   //if ($cache) {
-  //  $cache->cache_set('results');
+//  $cache->cache_set('results');
   //}
 
   // Update the pager, if we're using one.  Note: this only updates the page
@@ -353,7 +353,7 @@ function _views_distinct_field_settings_defaults() {
  *   An array of default settings (action, post_render, aggregate_separator).
  */
 function _views_distinct_field_settings_get($view_name, $display_name, $field_name) {
-  $static_cache = &drupal_static('views_distinct', array());
+  $static_cache = &backdrop_static('views_distinct', array());
   // Check if this view_name has been loaded and if not, load it from the DB:
   if (!isset($static_cache[$view_name])) {
     $static_cache[$view_name] = array();
@@ -372,10 +372,10 @@ function _views_distinct_field_settings_get($view_name, $display_name, $field_na
       $static_cache[$view_name] = array_merge_recursive(
         $static_cache[$view_name],
         array(
-          $result->display_id => array(
-            $result->field_id => $settings,
-          ),
-        )
+        $result->display_id => array(
+          $result->field_id => $settings,
+        ),
+      )
       );
     }
   }
@@ -406,7 +406,7 @@ function _views_distinct_field_settings_get($view_name, $display_name, $field_na
  *   removed, not updated.
  */
 function _views_distinct_field_settings_set($view_name, $display_name, $field_name, $settings = NULL) {
-  $static_cache = &drupal_static('views_distinct', array());
+  $static_cache = &backdrop_static('views_distinct', array());
   if (empty($display_name)) {
     $display_name = 'default';
   }
@@ -430,7 +430,7 @@ function _views_distinct_field_settings_set($view_name, $display_name, $field_na
       'field_id' => $field_name,
       'settings' => $settings,
     );
-    drupal_write_record('views_distinct', $record);
+    backdrop_write_record('views_distinct', $record);
   }
   else {
     // If we're removing settings, revert the static cache to defaults:
@@ -462,7 +462,7 @@ function _views_distinct_field_settings_set($view_name, $display_name, $field_na
  *   [(pre|post)_render] => [aggregated_fields] => [field_names...] => array()
  */
 function _views_distinct_get_view_actions(&$view) {
-  $static = &drupal_static(__FUNCTION__, array());
+  $static = &backdrop_static(__FUNCTION__, array());
 
   $view_name = $view->name;
   $display_name = $view->current_display;
