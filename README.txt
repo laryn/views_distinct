@@ -1,6 +1,6 @@
 Views Distinct
 ==============
-
+ 
 (NOTE: This is a port in progress. Please, help us test it and ready it for release.)
 
 
@@ -118,6 +118,6 @@ it's best if folks know about them:
       option.
 
 
-MAINTAINERS
+Credits
 -----------
-- jay.dansand (Jay Dansand)
+- Drupal Maintainer - jay.dansand (Jay Dansand)
