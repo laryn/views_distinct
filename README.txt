@@ -1,3 +1,9 @@
+Views Distinct
+==============
+
+(NOTE: This is a port in progress. Please, help us test it and ready it for release.)
+
+
 CONTENTS OF THIS FILE
 ---------------------
 
