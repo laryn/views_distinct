@@ -57,11 +57,8 @@ function views_distinct_form_views_ui_config_item_form_alter(&$form, &$form_stat
     '#default_value' => $views_distinct_settings['aggregate_separator'],
     '#fieldset' => 'views_distinct',
     '#states' => array(
-      'invisible' => array(
-        ':input[name="views_distinct_action"]' => array('value' => ''),
-      ),
       'visible' => array(
-        ':input[name="views_distinct_action"]' => array('value' => 'aggregate_repeats'),
+        ':input[name="options[views_distinct_action]"]' => array('value' => 'aggregate_repeats'),
       ),
     ),
   );
@@ -73,13 +70,13 @@ function views_distinct_form_views_ui_config_item_form_alter(&$form, &$form_stat
     '#fieldset' => 'views_distinct',
     '#states' => array(
       'invisible' => array(
-        ':input[name="views_distinct_action"]' => array('value' => ''),
+        ':input[name="options[views_distinct_action]"]' => array('value' => ''),
       ),
     ),
   );
 
   // Add our own submit handler, executed before views_ui_standard_submit()
-  array_unshift($form['buttons']['submit']['#submit'], 'views_distinct_form_views_ui_config_item_form_submit');
+  array_unshift($form['actions']['submit']['#submit'], 'views_distinct_form_views_ui_config_item_form_submit');
 }
 
 /**
